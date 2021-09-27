@@ -1,0 +1,37 @@
+{
+    "manifest_version": 2,
+    "name": "Ordnet Audio Downloader",
+    "description": "Allows easy download of audio files from ordnet.dk",
+    "version": "1.0",
+    "browser_action": {
+        "default_icon": "download.png"
+    },
+    "permissions": [
+        "*://*.ordnet.dk/*",
+        "https://ordnet.dk/*",
+        "downloads"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "https://ordnet.dk/*"
+            ],
+            "js": [
+                "content.js"
+            ],
+            "css": [
+                "styles.css"
+            ]
+        }
+    ],
+    "background": {
+        "scripts": [
+            "background.js"
+        ],
+        "persistent": false
+    },
+    "web_accessible_resources": [
+        "download.png",
+        "styles.css"
+    ]
+}
