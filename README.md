@@ -4,5 +4,5 @@ A simple extension that adds a download button next to the button for audio play
 
 ## Possible Features
 
-Add a popup for word search and direct download
-Integrate with Anki / generate anki cards (probably possible?)
+- Add a popup for word search and direct download
+- Integrate with Anki / generate anki cards (probably possible?)
