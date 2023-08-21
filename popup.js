@@ -56,9 +56,8 @@ function generateFileContent(words) {
   content += headerHTML + newLine;
 
   for (const word of words) {
-    content +=
-      word.eng + ";" + word.dk + ";" + getAudioName(word.audio) + newLine;
-    downloadMedia(word.audio);
+    content += word.eng + ";" + word.dk + ";" + word.audio + newLine;
+    word.audioFilesURLs.forEach((file) => downloadMedia(file));
   }
 
   downloadFile(content);
