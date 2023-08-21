@@ -1,37 +1,29 @@
 {
-    "manifest_version": 2,
-    "name": "Ordnet Audio Downloader",
-    "description": "Allows easy download of audio files from ordnet.dk",
-    "version": "1.0",
-    "browser_action": {
-        "default_icon": "download.png"
-    },
-    "permissions": [
-        "*://*.ordnet.dk/*",
-        "https://ordnet.dk/*",
-        "downloads"
-    ],
-    "content_scripts": [
-        {
-            "matches": [
-                "https://ordnet.dk/*"
-            ],
-            "js": [
-                "content.js"
-            ],
-            "css": [
-                "styles.css"
-            ]
-        }
-    ],
-    "background": {
-        "scripts": [
-            "background.js"
-        ],
-        "persistent": false
-    },
-    "web_accessible_resources": [
-        "download.png",
-        "styles.css"
-    ]
+  "manifest_version": 3,
+  "name": "Ordnet Audio Downloader",
+  "description": "Allows easy download of audio files from ordnet.dk",
+  "version": "1.0",
+  "action": {
+    "default_icon": "download.png",
+    "default_popup": "popup.html"
+  },
+  "host_permissions": ["https://ordnet.dk/*", "*://*.ordnet.dk/*"],
+  "permissions": ["downloads", "storage"],
+  "content_scripts": [
+    {
+      "matches": ["https://ordnet.dk/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ],
+  "background": {
+    "service_worker": "service_worker.js",
+    "type": "module"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["download.png", "styles.css"],
+      "matches": ["https://ordnet.dk/*"]
+    }
+  ]
 }
