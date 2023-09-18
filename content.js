@@ -5,6 +5,8 @@ function createButton() {
   const downloadImageUrl = chrome.runtime.getURL("./download.png");
   const element = document.getElementById(soundDivWrapperID);
 
+  if (!element) return;
+
   const downloadButton = document.createElement("button");
   downloadButton.onclick = downloadButtonClick;
   downloadButton.name = "audioDownload";
@@ -19,34 +21,56 @@ function createButton() {
   element.appendChild(downloadButton);
 }
 
-// function downloadButtonClick() {
-//   const audioFileLocation = document
-//     .getElementsByTagName("audio")[0]
-//     .getElementsByTagName("a")[0].href;
-
-//   chrome.runtime.sendMessage({ data: audioFileLocation });
-// }
-
 async function downloadButtonClick() {
+  const tableKey = "tableWords";
+  const result = await chrome.storage.local.get([tableKey]);
+
+  let words = result[tableKey];
+
+  if (!words) {
+    await chrome.storage.local.set({ [tableKey]: [] });
+    const newResult = await chrome.storage.local.get([tableKey]);
+    words = newResult[tableKey];
+  }
+
+  const firstAudioLink = document
+    .getElementsByTagName("audio")[0]
+    .getElementsByTagName("a")[0].href;
+
+  const id = getIDFromAudioURL(firstAudioLink);
+
+  if (words.find((word) => word.id === id)) {
+    window.alert("Word already added.");
+    return;
+  }
+
   const eng = prompt("Please enter english translation:");
 
   if (!eng) return;
 
   const dk = getDanishWord();
-  const test = getWordNounVerbOrOther();
-  console.log(test);
+  let wordType = getWordType();
+
+  let enOrEt = undefined;
+  if (wordType.startsWith("substantiv")) {
+    const splitWords = wordType.split(",");
+
+    wordType = splitWords[0].trim();
+    enOrEt = splitWords[1].trim();
+  }
+
+  // konjunktion
+  // substantiv
+  // infinitivpartikel
+  // adjektiv
 
   const suffixes = document
     .getElementById("id-boj")
-    .getElementsByClassName("tekstmedium")[0].innerText;
-
-  // const audioFileLocation = document
-  //   .getElementsByTagName("audio")[0]
-  //   .getElementsByTagName("a")[0].href;
+    ?.getElementsByClassName("tekstmedium")[0].innerText;
 
   const audioHTMLCollection = document
     .getElementById("id-udt")
-    .getElementsByClassName("tekstmedium")[0].children;
+    ?.getElementsByClassName("tekstmedium")[0].children;
 
   const audioSpellTag = "lydskrift";
   const audioTenseTag = "diskret";
@@ -79,18 +103,15 @@ async function downloadButtonClick() {
     }
   }
 
-  const val = { eng, dk, audio: audioHTMLString, audioFilesURLs };
-  const tableKey = "tableWords";
-
-  const result = await chrome.storage.local.get([tableKey]);
-
-  let words = result[tableKey];
-
-  if (!words) {
-    await chrome.storage.local.set({ [tableKey]: [] });
-    const newResult = await chrome.storage.local.get([tableKey]);
-    words = newResult[tableKey];
-  }
+  const val = {
+    eng,
+    dk,
+    audio: audioHTMLString,
+    audioFilesURLs,
+    id,
+    wordType,
+    enOrEt,
+  };
 
   words.push(val);
 
@@ -112,13 +133,17 @@ function getDanishWord() {
   return wordDOM.innerText;
 }
 
-function getWordNounVerbOrOther() {
+function getWordType() {
   const wordDOM = document.querySelector(".definitionBoxTop > .tekstmedium");
   return extractTextContent(wordDOM.innerText);
 }
 
 function getAudioName(path) {
   return `[sound:${path.split("/").pop()}]`;
+}
+
+function getIDFromAudioURL(path) {
+  return path.split("/").pop().split(".")[0].split("_")[0];
 }
 
 function getTenses(htmlContent) {

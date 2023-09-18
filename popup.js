@@ -4,6 +4,10 @@ generateTable();
 
 addExportHandler();
 
+addClearAllHandler();
+
+setWordCount();
+
 function generateTable() {
   chrome.storage.local.get([tableKey], (result) => {
     const words = result[tableKey];
@@ -13,6 +17,17 @@ function generateTable() {
     const tableDOM = document.getElementById("ordnetTable");
 
     const table = document.createElement("table");
+
+    const thEng = document.createElement("th");
+    const thDk = document.createElement("th");
+
+    thEng.innerText = "English";
+    thDk.innerText = "Danish";
+
+    const trTh = document.createElement("tr");
+    trTh.append(thEng, thDk);
+
+    table.appendChild(trTh);
 
     for (const word of words) {
       const tr = table.insertRow();
@@ -27,23 +42,50 @@ function generateTable() {
   });
 }
 
+async function setWordCount() {
+  const result = await chrome.storage.local.get([tableKey]);
+  const words = result[tableKey];
+  const wordCount = document.getElementById("wordCount");
+
+  wordCount.innerText = !words ? 0 : words.length;
+}
+
 function addExportHandler() {
   const exportButton = document.getElementById("exportAll");
   exportButton.onclick = exportAll;
 }
 
+function addClearAllHandler() {
+  const clearButton = document.getElementById("clearAll");
+  clearButton.onclick = clearAll;
+}
+
+async function clearAll() {
+  const result = await chrome.storage.local.get([tableKey]);
+  const words = result[tableKey];
+
+  if (!words || words.length === 0) return;
+
+  if (window.confirm("Do you really want to clear all?")) {
+    clearOldData();
+  }
+}
+
 async function exportAll() {
   const result = await chrome.storage.local.get([tableKey]);
   const words = result[tableKey];
-  console.log(words);
+
+  if (!words || words.length === 0) return;
+
   generateFileContent(words);
-  //   clearOldData();
+  clearOldData();
 }
 
 async function clearOldData() {
   await chrome.storage.local.clear();
   const tableDOM = document.getElementById("ordnetTable");
   tableDOM.remove();
+  window.close();
 }
 
 function generateFileContent(words) {
@@ -56,7 +98,20 @@ function generateFileContent(words) {
   content += headerHTML + newLine;
 
   for (const word of words) {
-    content += word.eng + ";" + word.dk + ";" + word.audio + newLine;
+    // By putting ID first, Anki can check for uniqueness
+    content +=
+      word.id +
+      ";" +
+      word.eng +
+      ";" +
+      word.dk +
+      ";" +
+      word.wordType +
+      ";" +
+      (word.enOrEt || "") +
+      ";" +
+      word.audio +
+      newLine;
     word.audioFilesURLs.forEach((file) => downloadMedia(file));
   }
 
